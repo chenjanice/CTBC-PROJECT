@@ -7,6 +7,13 @@
 ## DATA來源
 - [CNBC](https://www.cnbc.com/bill-ackman/?page=2)
 - [DATA ROMA](https://www.dataroma.com/m/home.php)
+# EDA
+![image](https://raw.githubusercontent.com/chenjanice/CTBC-PROJECT/master/HW3/images/1.png)
+![image](https://raw.githubusercontent.com/chenjanice/CTBC-PROJECT/master/HW3/images/2.png)
+![image](https://raw.githubusercontent.com/chenjanice/CTBC-PROJECT/master/HW3/images/3.png)
+![image](https://raw.githubusercontent.com/chenjanice/CTBC-PROJECT/master/HW3/images/4.png)
+![image](https://raw.githubusercontent.com/chenjanice/CTBC-PROJECT/master/HW3/images/5.png)
+
 
 # 歷年持股共現圖
 1. 讀取歷年持股資料
