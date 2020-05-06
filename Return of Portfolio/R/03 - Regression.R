@@ -36,7 +36,6 @@ summary(reg3)
 write.csv(fama, file = "Rp.csv", row.names = F)
 
 #Export Regression Table
-export_summs(reg1, reg2, reg3, scale = TRUE)
 library(stargazer)
 tex = stargazer(reg1, reg2, reg3, title="Results", align=TRUE)
 
