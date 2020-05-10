@@ -25,9 +25,8 @@
  ## Regression
 
 * Fama French 5-factor Model
-
-  $R_p = \alpha + \beta_1 MKT + \beta_2 SMB + \beta_3 HML + \beta_4 RMW + \beta_5 CMA + u_i$
-
+  
+  ![R_p = \alpha + \beta_1 MKT + \beta_2 SMB + \beta_3 HML + \beta_4 RMW + \beta_5 CMA + u_i](https://render.githubusercontent.com/render/math?math=R_p%20%3D%20%5Calpha%20%2B%20%5Cbeta_1%20MKT%20%2B%20%5Cbeta_2%20SMB%20%2B%20%5Cbeta_3%20HML%20%2B%20%5Cbeta_4%20RMW%20%2B%20%5Cbeta_5%20CMA%20%2B%20u_i)
   
 
  ## Model training
