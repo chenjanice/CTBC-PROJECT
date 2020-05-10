@@ -26,7 +26,7 @@
 
 * Fama French 5-factor Model
 
-  $$R_p = \alpha + \beta_1 MKT + \beta_2 SMB + \beta_3 HML + \beta_4 RMW + \beta_5 CMA + u_i$$
+  $R_p = \alpha + \beta_1 MKT + \beta_2 SMB + \beta_3 HML + \beta_4 RMW + \beta_5 CMA + u_i$
 
   
 
