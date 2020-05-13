@@ -31,4 +31,3 @@
 
  ## Model training
 
-[trello](https://trello.com/c/ERFi2thr/34-4-20%EF%BC%88%E4%B8%80%EF%BC%89)
