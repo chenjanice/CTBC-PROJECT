@@ -7,16 +7,17 @@
 
 
 ## Bill Ackman
-
+### DATA
  - Bill Ackman歷年新聞   
    - [CBNC-Bill Ackman](https://github.com/chenjanice/CTBC-PROJECT/blob/master/%E5%85%B1%E7%8F%BE%E5%9C%96/Data_BillAckman%E6%96%B0%E8%81%9E.csv)    
- - 歷年持股   
+ - Bill Ackman歷年持股   
    - [Dataroma-Bill Ackman](https://github.com/chenjanice/CTBC-PROJECT/blob/master/%E5%85%B1%E7%8F%BE%E5%9C%96/Data_%E6%8C%81%E8%82%A1%E8%B3%87%E6%96%99.csv)
 
- - [投組報酬](https://github.com/chenjanice/CTBC-PROJECT/tree/master/Bill%20Ackman's%20Portfolio%20Return/Return%20of%20Portfolio/R)
+ - Bill Ackman投組報酬
+   - [報酬計算](https://github.com/chenjanice/CTBC-PROJECT/tree/master/Bill%20Ackman's%20Portfolio%20Return/Return%20of%20Portfolio/R)
    - Weighting(https://github.com/chenjanice/CTBC-PROJECT/tree/master/Bill%20Ackman's%20Portfolio%20Return/Dataroma%20Weight%20Crawling)
    - Yahoo Finance(https://github.com/chenjanice/CTBC-PROJECT/tree/master/Bill%20Ackman's%20Portfolio%20Return/Yahoo%20Finance)
-   - [經濟預測模型指標](https://github.com/chenjanice/CTBC-PROJECT/tree/master/%E7%B6%93%E6%BF%9F%E9%A0%90%E6%B8%AC%E6%A8%A1%E5%9E%8B/Data)
+   - [Bill Ackman經濟預測模型指標](https://github.com/chenjanice/CTBC-PROJECT/tree/master/%E7%B6%93%E6%BF%9F%E9%A0%90%E6%B8%AC%E6%A8%A1%E5%9E%8B/Data)
 
 ### Project
  - [視覺化資料](https://github.com/chenjanice/CTBC-PROJECT/blob/master/%E5%85%B1%E7%8F%BE%E5%9C%96/%E8%A6%96%E8%A6%BA%E5%8C%96.ipynb)
