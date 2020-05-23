@@ -36,8 +36,6 @@
 >   - [0509](https://github.com/chenjanice/CTBC-PROJECT/blob/master/ALL%20Super%20Investors'%20Portfolio/2020-05-09_Dataroma.ipynb)
 >   - [0514](https://github.com/chenjanice/CTBC-PROJECT/blob/master/ALL%20Super%20Investors'%20Portfolio/2020-05-14_Dataroma.ipynb)
 
-
-> ### DATA
  ## Preprocessing
 
 1. Crawling Portfolio Weightings on Dataroma
