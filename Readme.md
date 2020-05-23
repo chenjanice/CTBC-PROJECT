@@ -22,7 +22,7 @@
 >  - [共現圖_基金持有](https://github.com/chenjanice/CTBC-PROJECT/blob/master/%E5%85%B1%E7%8F%BE%E5%9C%96/%E5%85%B1%E7%8F%BE%E5%9C%96_%E5%9F%BA%E9%87%91%E6%8C%81%E6%9C%89.ipynb)
 >  - [共現圖_美股新聞](https://github.com/chenjanice/CTBC-PROJECT/blob/master/%E5%85%B1%E7%8F%BE%E5%9C%96/%E5%85%B1%E7%8F%BE%E5%9C%96_%E7%BE%8E%E8%82%A1%E6%96%B0%E8%81%9E.ipynb)
 >  - [經濟預測模型](https://github.com/chenjanice/CTBC-PROJECT/tree/master/%E7%B6%93%E6%BF%9F%E9%A0%90%E6%B8%AC%E6%A8%A1%E5%9E%8B)
->  - [Regression結果]
+>  - [Regression結果](https://github.com/chenjanice/CTBC-PROJECT/blob/master/Bill%20Ackman's%20Portfolio%20Return/readme.md)
 
  ## Preprocessing
 
