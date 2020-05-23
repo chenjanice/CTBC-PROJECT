@@ -11,7 +11,7 @@
 >  - Bill Ackman歷年新聞   
 >    - [CBNC-Bill Ackman](https://github.com/chenjanice/CTBC-PROJECT/blob/master/%E5%85%B1%E7%8F%BE%E5%9C%96/Data_BillAckman%E6%96%B0%E8%81%9E.csv)    
 >  - Bill Ackman歷年持股   
-   - [Dataroma-Bill Ackman](https://github.com/chenjanice/CTBC-PROJECT/blob/master/%E5%85%B1%E7%8F%BE%E5%9C%96/Data_%E6%8C%81%E8%82%A1%E8%B3%87%E6%96%99.csv)
+>    - [Dataroma-Bill Ackman](https://github.com/chenjanice/CTBC-PROJECT/blob/master/%E5%85%B1%E7%8F%BE%E5%9C%96/Data_%E6%8C%81%E8%82%A1%E8%B3%87%E6%96%99.csv)
 
 >  - Bill Ackman投組報酬
 >    - [報酬計算](https://github.com/chenjanice/CTBC-PROJECT/tree/master/Bill%20Ackman's%20Portfolio%20Return/Return%20of%20Portfolio/R)
