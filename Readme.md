@@ -23,7 +23,21 @@
 >  - [共現圖_美股新聞](https://github.com/chenjanice/CTBC-PROJECT/blob/master/%E5%85%B1%E7%8F%BE%E5%9C%96/%E5%85%B1%E7%8F%BE%E5%9C%96_%E7%BE%8E%E8%82%A1%E6%96%B0%E8%81%9E.ipynb)
 >  - [經濟預測模型](https://github.com/chenjanice/CTBC-PROJECT/tree/master/%E7%B6%93%E6%BF%9F%E9%A0%90%E6%B8%AC%E6%A8%A1%E5%9E%8B)
 >  - [Regression結果](https://github.com/chenjanice/CTBC-PROJECT/blob/master/Bill%20Ackman's%20Portfolio%20Return/readme.md)
+## All Super Investor
+> - Regression
+>   -  [All output](https://github.com/chenjanice/CTBC-PROJECT/tree/master/ALL%20Super%20Investors'%20Portfolio/ALL%20Super%20Investors'%20Portfolio%20in%20R/reg%20output/regression%20table)
+>   -  [All Price](https://github.com/chenjanice/CTBC-PROJECT/blob/master/ALL%20Super%20Investors'%20Portfolio/ALL%20Super%20Investors'%20Portfolio%20in%20R/raw%20data/ALL_Prices.csv)
+>   -  [Weight](https://github.com/chenjanice/CTBC-PROJECT/tree/master/ALL%20Super%20Investors'%20Portfolio/ALL%20Super%20Investors'%20Portfolio%20in%20R/raw%20data/super_investors)
+>   -  [Weight(No shortening](https://github.com/chenjanice/CTBC-PROJECT/tree/master/ALL%20Super%20Investors'%20Portfolio/ALL%20Super%20Investors'%20Portfolio%20in%20R/raw%20data/super_investors_without_shortening)
+>   -  [5Factors](https://github.com/chenjanice/CTBC-PROJECT/blob/master/ALL%20Super%20Investors'%20Portfolio/ALL%20Super%20Investors'%20Portfolio%20in%20R/raw%20data/F-F_Research_Data_5_Factors_2x3.CSV)
+>   -  code
+>       - [All Stock](https://github.com/chenjanice/CTBC-PROJECT/blob/master/ALL%20Super%20Investors'%20Portfolio/2020-05-09_ALL_STOCKS.ipynb)
+>       - Dataroma
+>         - [0509](https://github.com/chenjanice/CTBC-PROJECT/blob/master/ALL%20Super%20Investors'%20Portfolio/2020-05-09_Dataroma.ipynb)
+>         - [0514](https://github.com/chenjanice/CTBC-PROJECT/blob/master/ALL%20Super%20Investors'%20Portfolio/2020-05-14_Dataroma.ipynb)
 
+
+> ### DATA
  ## Preprocessing
 
 1. Crawling Portfolio Weightings on Dataroma
