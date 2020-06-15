@@ -1,0 +1,516 @@
+library(glmnet) #Lasso
+
+#Def 1
+`+` <- function(e1, e2) {
+  if (is.character(e1) | is.character(e2)) {
+    paste0(e1, e2)
+  } else {
+    base::`+`(e1, e2)
+  }
+}
+
+#讀檔
+setwd("/Users/Andy 1/Google 雲端硬碟 (r08323004@g.ntu.edu.tw)/0 Semesters/108-2/四234 文字探勘/0 中信 投資因子分析/crawling/Bill Ackman/ALL Super Investors' Portfolio with Industrial Return in R/03 Lasso")
+
+#Read Fama
+fama = read.csv("raw data/F-F_Research_Data_5_Factors_2x3.csv")
+colnames(fama)[1] = "Date"
+for(i in 1:length(fama$Date)){
+  fama$Date[i] = fama$Date[i]+"01"
+} ##加上空字串，讓這個column都存string，才可以被time format讀
+fama$Date = as.Date(fama$Date, "%Y%m%d")
+rownames(fama) = fama$Date
+
+#Read investor's return
+rInvestors = read.csv("raw data/rInvestors.csv")
+rInvestors$Date = as.Date(rInvestors$Date)
+ 
+#Use only NASDAQ + sector=="info tech"
+rNASDAQ = read.csv("raw data/rNASDAQ.csv")
+rNASDAQ$Date = as.Date(rNASDAQ$Date)
+
+# Read SVM Predictions
+SVM_Predictions = read.csv("raw data/SVM/108010_result.csv", header = T)
+##############################################################
+### Lasso ####
+
+#Y是特定投資人的portfolio return
+#例如Stephen Mandel的Lone Pine Capital (LPC)
+CertainInvestor = "AC"
+Y = rInvestors[c("Date", CertainInvestor)]
+Y = na.omit(Y)
+
+#X是NASDAQ成分股以及被標為InfoTech的公司的各期Return，根據Y有資料的期間來決定期間
+X = rNASDAQ[rNASDAQ$Date>=min(Y$Date) & rNASDAQ$Date<=max(Y$Date),]
+
+#如果在Y的期間內，X包含na，就drop那該欄
+col_keep = c()
+for(col in colnames(X)){
+  if(sum(is.na(X[col]))==0){
+    col_keep = c(col_keep, col)
+  }
+}
+X = X[,col_keep]; rm(col_keep); rm(col)
+dim(X)
+
+
+# 把returns of investors and returns of stocks切成train和test
+# 2008-01-01~2018-12-31是train；2019-01-01~ 是test
+##############################################################
+X.train = X[X$Date <= "2018-12-31",]
+X.test = X[X$Date > "2018-12-31",]
+
+Y.train = Y[Y$Date <= "2018-12-31",]
+Y.test = Y[Y$Date > "2018-12-31",]
+
+# 依照S&P500的monthly return高低，來區分good-normal-bad states
+# Bad: < -3.9% ; Good: > 4.975%
+# 10%-80%-10%
+
+#讓取出來的row數（長度）相同
+rSP500 = fama[fama$Date >= min(X.train$Date) & fama$Date <= max(X.train$Date),c("Date", "rSP500")]
+quantile(rSP500$rSP500, prob = seq(0,1,0.05))
+lower_threshold = -0.039; upper_threshold = 0.04975
+sum(rSP500$rSP500 < (-0.039))
+sum(rSP500$rSP500 > 0.04975)
+sum(rSP500$rSP500 >= (-0.039) & rSP500$rSP500 <= 0.04975)
+
+X.train.bad = X.train[rSP500$rSP500 < (-0.039),] #找出壞的時期的股池
+dim(X.train.bad)
+X.train.normal = X.train[rSP500$rSP500 >= (-0.039) & rSP500$rSP500 <= 0.04975,] #找出普通的時期的股池
+dim(X.train.normal)
+X.train.good = X.train[rSP500$rSP500 > 0.04975,] #找出壞的時期的股池
+dim(X.train.good)
+
+Y.train.bad = Y.train[rSP500$rSP500 < (-0.039),]
+Y.train.normal = Y.train[rSP500$rSP500 >= (-0.039) & rSP500$rSP500 <= 0.04975,]
+Y.train.good = Y.train[rSP500$rSP500 > 0.04975,]
+
+#去掉時間標籤，以做矩陣相乘
+Y.train.bad = as.matrix(Y.train.bad[, 2])
+X.train.bad = as.matrix(X.train.bad[,2:length(X.train.bad)])
+dim(X.train.bad); dim(Y.train.bad)
+
+Y.train.normal = as.matrix(Y.train.normal[, 2])
+X.train.normal = as.matrix(X.train.normal[,2:length(X.train.normal)])
+dim(X.train.normal); dim(Y.train.normal)
+
+Y.train.good = as.matrix(Y.train.good[, 2])
+X.train.good = as.matrix(X.train.good[,2:length(X.train.good)])
+dim(X.train.good); dim(Y.train.good)
+#######################################################
+# If K>n 解釋變數數量k大於樣本數n
+# Recall our OLS estimator: beta_hat = (X'X)^(-1)X'Y
+# solve(t(X.train)%*%X.train)%*%t(X.train)%*%Y.train #OLS is not feasible
+# summary(lm(Y.train~X.train))
+
+# # Using Ridge
+# #Trying different tuning parameter: lambda
+# lasso.mod = glmnet(X.train, Y.train, alpha = 0, lambda = grid, intercept = F)
+# plot(lasso.mod, xvar = 'lambda')
+# plot(lasso.mod)
+
+# # Using Elastic Net
+# #Trying different tuning parameter: lambda
+# lasso.mod = glmnet(X.train, Y.train, alpha = 0.5, lambda = grid, intercept = F)
+# plot(lasso.mod, xvar = 'lambda')
+# plot(lasso.mod)
+
+# Using Lasso
+#Trying different tuning parameter: lambda
+grid = 10^seq(2, -2, length = 1000)
+lasso.mod.bad = glmnet(X.train.bad, Y.train.bad, alpha = 1, lambda = grid, intercept = F)
+plot(lasso.mod.bad, xvar = 'lambda')
+plot(lasso.mod.bad)
+
+lasso.mod.normal = glmnet(X.train.normal, Y.train.normal, alpha = 1, lambda = grid, intercept = F)
+plot(lasso.mod.normal, xvar = 'lambda')
+plot(lasso.mod.normal)
+
+lasso.mod.good = glmnet(X.train.good, Y.train.good, alpha = 1, lambda = grid, intercept = F)
+plot(lasso.mod.good, xvar = 'lambda')
+plot(lasso.mod.good)
+
+
+#先用Cross Validation找出合適的lambda
+##############################################################
+
+# a fcn that return the best tuning parameter lambda
+tuning_lambda = function(X.train, Y.train){
+  #抽cross validation的rows
+  train_rows = sample(1:length(Y.train), 0.66*length(Y.train))
+  #set up train set and validation set for finding lambda
+  X.tune.train = X.train[train_rows,]
+  X.tune.test = X.train[-train_rows,]
+  Y.tune.train = Y.train[train_rows,]
+  Y.tune.test = Y.train[-train_rows,]
+  #Obtain the optimal lambda through cross validation: Lasso
+  lambda = c()
+  for(i in 1:100){
+    alpha1.fit = cv.glmnet(X.tune.train, Y.tune.train, type.measure = "mse", alpha = 1, family = "gaussian")
+    alpha1.predict = predict(alpha1.fit, s = alpha1.fit$lambda.1se, newx = X.tune.test)
+    mean((Y.tune.test - alpha1.predict)^2)
+    lambda = rbind(lambda, alpha1.fit$lambda.1se)
+  }
+  #hist(lambda); mean(lambda)
+  lambda = mean(lambda)
+  return(lambda)
+}
+#lambda.bad = tuning_lambda(X.train.bad, Y.train.bad)
+#lambda.normal = tuning_lambda(X.train.normal, Y.train.normal)
+#lambda.good = tuning_lambda(X.train.good, Y.train.good)
+
+################################################
+# #看看得到的weight
+# lasso.coef = predict(lasso.mod, type = 'coefficients', s = lambda)
+# lasso.coef #估出的係數(投資某檔股票的權重)
+# lasso.coef[lasso.coef>0 | lasso.coef<0] #只看那些不為零的
+# sum(lasso.coef) #權重之和大於一表示有槓桿
+
+# define a function that returns the Lasso Coef. given a certain state
+lasso_mod = function(X.train, Y.train){
+  lambda = tuning_lambda(X.train, Y.train)
+  lasso.mod = glmnet(X.train, Y.train, alpha = 1, lambda = lambda, intercept = F)
+  lasso.coef = predict(lasso.mod, type = 'coefficients', s = lambda)
+  return(lasso.coef)
+}
+
+#set.seed(1)
+lasso.coef.bad = lasso_mod(X.train.bad, Y.train.bad)
+lasso.coef.normal = lasso_mod(X.train.normal, Y.train.normal)
+lasso.coef.good = lasso_mod(X.train.good, Y.train.good)
+
+
+# Define a function that returns a list of table
+find_Rp = function(lasso.coef){
+  ###整理權重的table
+  P_weight_found = data.frame(lasso.coef@Dimnames[[1]][lasso.coef@i+1], as.numeric(lasso.coef@x))
+  colnames(P_weight_found) = c("Stock", "weight")
+  sum_of_weight = sum(P_weight_found[,2]) #sum of weight
+  P_weight_found = t(P_weight_found)
+  colnames(P_weight_found) = lasso.coef@Dimnames[[1]][lasso.coef@i+1]
+  #看weight
+  View(P_weight_found)
+  table_out_weight = P_weight_found
+  
+  # 依得到的權重建構投資組合並找出Portfolio return
+  Rp_star = 0
+  weight = c()
+  for(s in colnames(P_weight_found)){
+    temp = rNASDAQ[s]*as.numeric(P_weight_found[,s][2])
+    Rp_star = Rp_star+temp
+    #找權重
+    temp_weight = as.numeric(P_weight_found[,s][2])
+    weight = rbind(weight, temp_weight)
+  }
+  rownames(weight) = colnames(P_weight_found)
+  weight[,1] = weight[,1]/sum(weight[,1])
+  write.csv(as.data.frame(weight), file = "R output/weight_found_"+CertainInvestor+".csv")
+  
+  colnames(Rp_star) = "Rp_star"
+  #拿到對應的時間標籤
+  Test_table = cbind(rNASDAQ, Rp_star)
+  Test_table = drop(Test_table[c("Date", "Rp_star")])
+  #對齊特定投資人所投資的時間
+  Test_table = merge(fama, Test_table, by = "Date", all = T) #併到fama table
+  #加入特定投資人的portfolio return
+  Test_table = merge(Test_table, rInvestors[c("Date", CertainInvestor)], by = "Date", all = T) #併到fama table
+  return(Test_table)
+}
+
+Test_table.bad = find_Rp(lasso.coef.bad)
+Test_table.normal = find_Rp(lasso.coef.normal)
+Test_table.good = find_Rp(lasso.coef.good)
+#改名
+colnames(Test_table.bad)[15] = "Rp_star.bad"
+colnames(Test_table.normal)[15] = "Rp_star.normal"
+colnames(Test_table.good)[15] = "Rp_star.good"
+#合併
+Test_table = merge(Test_table.bad, Test_table.normal[,c("Date", "Rp_star.normal")], by = "Date", all = T)
+Test_table = merge(Test_table, Test_table.good[,c("Date", "Rp_star.good")], by = "Date", all = T)
+# 先給row name，為date
+rownames(Test_table) = Test_table$Date
+#################################################################
+# 根據SVM的結果來決定test range(2019-01~2020-03)要用哪一種weight
+#################################################################
+
+rSP500.test = SVM_Predictions$svm.sigmoid.[1:15]
+state_contingent_Rp_star = Test_table[Test_table$Date>="2019-01-01" & Test_table$Date <= "2020-03-01",c("Date", "Rp_star.normal")]
+colnames(state_contingent_Rp_star) = c("Date", "state_contingent_Rp_star")
+Test_table = merge(Test_table, state_contingent_Rp_star, by = "Date", all = T)
+View(Test_table)
+###############################################################
+# 可以再加進SVM對test range的景氣預測更新上面的state_contingent_Rp_star
+###############################################################
+# 現在看test range下的state_contingent_Rp_star表現得如何
+#比起LPC還有NASDAQ或S&P500，在2019-01~2020-03這段期間的performance
+
+# Distribution of Portfolio Return
+hist(na.omit(Test_table$state_contingent_Rp_star))
+plot(density(na.omit(Test_table$state_contingent_Rp_star)))
+plot(Test_table$Date, Test_table$state_contingent_Rp_star, type = "l", xlim = c(min(Test_table$Date[!is.na(Test_table$state_contingent_Rp_star)]), max(Test_table$Date[!is.na(Test_table$state_contingent_Rp_star)])))
+
+# Run Regression: Fama-French 5 Factor Model
+# 分成train和test，即2018-12-31前與後
+reg1 = lm(AC~Mkt.RF+SMB+HML+NASDAQ,
+          data = Test_table[Test_table$Date <= "2018-12-31",])
+summary(reg1)
+reg2 = lm(AC~Mkt.RF+SMB+HML+RMW+CMA+NASDAQ,
+          data = Test_table[Test_table$Date <= "2018-12-31",])
+summary(reg2)
+
+# Test
+reg3 = lm(state_contingent_Rp_star~Mkt.RF+SMB+HML+NASDAQ,
+          data = Test_table[Test_table$Date >= "2018-12-31",])
+summary(reg3)
+reg4 = lm(state_contingent_Rp_star~Mkt.RF+SMB+HML+RMW+CMA+NASDAQ,
+          data = Test_table[Test_table$Date >= "2018-12-31",])
+summary(reg4)
+
+################################################################
+# Compare Portfolio Return
+mean(na.omit(Test_table$state_contingent_Rp_star)); sd(na.omit(Test_table$state_contingent_Rp_star))
+mean(na.omit(Test_table[,CertainInvestor])); sd(na.omit(Test_table[,CertainInvestor]))
+
+# 年化的monthly return
+mean(na.omit(1+Test_table$Rp_star.normal/100)^12)-1 #全部期間
+mean(na.omit(1+Test_table$state_contingent_Rp_star/100)^12)-1 #Test Date期間
+cat("每月的年化報酬率為：", mean(na.omit(1+Test_table$Rp_star.normal/100)^12)-1)
+
+# Sharpe Ratio
+(mean(na.omit(1+Test_table$Rp_star.normal/100)^12)-1) - mean(na.omit((1+fama$RF[fama$Date>="2008-01-01"]/100)^12)-1)
+sd((na.omit(1+Test_table$Rp_star.normal/100)^12)-1)
+sharpe_self = ((mean(na.omit(1+Test_table$Rp_star.normal/100)^12)-1) - mean(na.omit((1+fama$RF[fama$Date>="2008-01-01"]/100)^12)-1))/sd((na.omit(1+Test_table$Rp_star.normal/100)^12)-1)
+
+# Sharpe Ratio: LPC
+(mean(na.omit(1+Test_table[,CertainInvestor]/100)^12)-1) - mean(na.omit((1+fama$RF[fama$Date>="2009-10-01"]/100)^12)-1)
+sd((na.omit(1+Test_table[,CertainInvestor]/100)^12)-1)
+sharpe_LPC = ((mean(  na.omit( 1+ Test_table[,CertainInvestor]/100  )^12  )-1) - mean(na.omit((1+fama$RF[fama$Date>="2009-10-01"]/100)^12)-1))/sd((na.omit(1+Test_table[,CertainInvestor]/100)^12)-1)
+cat("The Sharpe Ratio of Self-Concstructed Portfolio is: ", sharpe_self, 
+    "\n",
+    "The Sharpe Ratio of "+ CertainInvestor+ " is: ", sharpe_LPC)
+
+# Sortino Ratio 下行風險
+# SD 只考慮下行的時候，意味著只看景氣state為"-1"時（S&P500 return<）
+lower_threshold = -0.039
+sd(na.omit(((1+Test_table$Rp_star.normal[Test_table$rSP500<lower_threshold]/100)^12)-1))
+sortino_self = ((mean(na.omit(1+Test_table$Rp_star.normal/100)^12)-1) - mean(na.omit((1+fama$RF[fama$Date>="2008-01-01"]/100)^12)-1))/sd(na.omit(((1+Test_table$Rp_star.normal[Test_table$rSP500<lower_threshold]/100)^12)-1))
+# LPC
+sd(na.omit(((1+Test_table[Test_table$rSP500<lower_threshold,CertainInvestor]/100)^12)-1))
+sortino_LPC = ((mean(na.omit(1+Test_table[,CertainInvestor]/100)^12)-1) - mean(na.omit((1+fama$RF[fama$Date>="2008-01-01"]/100)^12)-1))/sd(na.omit(((1+Test_table[Test_table$rSP500<lower_threshold,CertainInvestor]/100)^12)-1))
+cat("The Sortino Ratio of Self-Concstructed Portfolio is: ", sortino_self, 
+    "\n",
+    "The Sortino Ratio of" +CertainInvestor+"is: ", sortino_LPC)
+
+# 輸出表格：Date, Rp_star, rSP500, rLPC
+table_out = Test_table[Test_table$Date>="2009-10-01",c("Date", "rSP500", "Rp_star.normal", CertainInvestor)]
+table_out$rSP500 = table_out$rSP500*100
+View(table_out)
+write.csv(table_out, "R output/table_of_return_for_graphs_LPC.csv")
+#getwd()
+
+## 投組單位價格價格折線圖
+png(filename = "R output/"+CertainInvestor+"_performance_test.png", width = 1024*2, height = 768*2, res = 150)
+par(mfrow = c(2,2))
+
+# 畫test期間：2019-01~2020-03
+#With Leverage
+Rp_star_ = Test_table$state_contingent_Rp_star[!is.na(Test_table[,"state_contingent_Rp_star"])]
+Rp_star_ = Rp_star_[1:length(Rp_star_)-1]
+Rp_star_date = Test_table$Date[!is.na(Test_table[,"state_contingent_Rp_star"])]
+price = 1
+accum_price = c(1)
+for(i in Rp_star_){
+  if(is.na(i)){
+    i = 0
+    price = price*(1+i/100)
+    accum_price = cbind(accum_price, price)
+  }else{
+    price = price*(1+i/100)
+    accum_price = cbind(accum_price, price)
+  }
+}
+plot(Rp_star_date, accum_price, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance of Self-Constructed Portfolio")
+
+##compared to Mandell
+rInvestor_ = rInvestors[CertainInvestor][rInvestors$Date>=min(Rp_star_date) & rInvestors$Date<max(Rp_star_date),]
+rInvestor__date = rInvestors$Date[rInvestors$Date>=min(Rp_star_date) & rInvestors$Date<=max(Rp_star_date)]
+
+rInvestor__date = rInvestor__date[!is.na(rInvestor_)]
+rInvestor_ = rInvestor_[!is.na(rInvestor_)]
+
+price = 1
+accum_price_rInvestor = c(1)
+for(i in rInvestor_){
+  price = price*(1+i/100)
+  accum_price_rInvestor = cbind(accum_price_rInvestor, price)
+}
+plot(rInvestor__date, accum_price_rInvestor, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance of "+CertainInvestor)
+
+##compared to S&P500
+#同樣的期間
+rSP500_ = fama$rSP500[fama$Date>=min(Rp_star_date) & fama$Date<max(Rp_star_date)]
+rSP500__date = fama$Date[fama$Date>=min(Rp_star_date) & fama$Date<=max(Rp_star_date)]
+price = 1
+accum_price_rSP500 = c(1)
+for(i in rSP500_){
+  price = price*(1+i)
+  accum_price_rSP500 = cbind(accum_price_rSP500, price)
+}
+plot(rSP500__date, accum_price_rSP500, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance of S&P500")
+
+##compared to NASDAQ
+#同樣的期間
+rNASDAQ_ = fama$NASDAQ[fama$Date>=min(Rp_star_date) & fama$Date<max(Rp_star_date)]
+rNASDAQ__date = fama$Date[fama$Date>=min(Rp_star_date) & fama$Date<=max(Rp_star_date)]
+price = 1
+accum_price_rNASDAQ = c(1)
+for(i in rNASDAQ_){
+  price = price*(1+i)
+  accum_price_rNASDAQ = cbind(accum_price_rNASDAQ, price)
+}
+plot(rNASDAQ__date, accum_price_rNASDAQ, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance of NASDAQ100")
+
+graphics.off()
+
+#### 畫全期間 ####
+
+#投組單位價格價格折線圖
+png(filename = "R output/"+CertainInvestor+"_performance_all.png", width = 1024*2, height = 768*2, res = 150)
+par(mfrow = c(2,2))
+
+#With Leverage
+#Rp_star_ = Test_table$state_contingent_Rp_star[!is.na(Test_table[,CertainInvestor])]
+Rp_star_ = Test_table$Rp_star.normal[!is.na(Test_table[,CertainInvestor])]
+Rp_star_ = Rp_star_[1:length(Rp_star_)-1]
+Rp_star_date = Test_table$Date[!is.na(Test_table[,CertainInvestor])]
+price = 1
+accum_price = c(1)
+for(i in Rp_star_){
+  if(is.na(i)){
+    i = 0
+    price = price*(1+i/100)
+    accum_price = cbind(accum_price, price)
+  }else{
+    price = price*(1+i/100)
+    accum_price = cbind(accum_price, price)
+  }
+}
+plot(Rp_star_date, accum_price, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance of Self-Constructed Portfolio")
+
+##compared to Mandell
+rInvestor_ = rInvestors[CertainInvestor][rInvestors$Date>=min(Rp_star_date) & rInvestors$Date<max(Rp_star_date),]
+rInvestor__date = rInvestors$Date[rInvestors$Date>=min(Rp_star_date) & rInvestors$Date<=max(Rp_star_date)]
+
+rInvestor__date = rInvestor__date[!is.na(rInvestor_)]
+rInvestor_ = rInvestor_[!is.na(rInvestor_)]
+
+price = 1
+accum_price_rInvestor = c(1)
+for(i in rInvestor_){
+  price = price*(1+i/100)
+  accum_price_rInvestor = cbind(accum_price_rInvestor, price)
+}
+plot(rInvestor__date, accum_price_rInvestor, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance of "+CertainInvestor)
+
+##compared to S&P500
+#同樣的期間
+rSP500_ = fama$rSP500[fama$Date>=min(Rp_star_date) & fama$Date<max(Rp_star_date)]
+rSP500__date = fama$Date[fama$Date>=min(Rp_star_date) & fama$Date<=max(Rp_star_date)]
+price = 1
+accum_price_rSP500 = c(1)
+for(i in rSP500_){
+  price = price*(1+i)
+  accum_price_rSP500 = cbind(accum_price_rSP500, price)
+}
+plot(rSP500__date, accum_price_rSP500, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance of S&P500")
+
+##compared to NASDAQ
+#同樣的期間
+rNASDAQ_ = fama$NASDAQ[fama$Date>=min(Rp_star_date) & fama$Date<max(Rp_star_date)]
+rNASDAQ__date = fama$Date[fama$Date>=min(Rp_star_date) & fama$Date<=max(Rp_star_date)]
+price = 1
+accum_price_rNASDAQ = c(1)
+for(i in rNASDAQ_){
+  price = price*(1+i)
+  accum_price_rNASDAQ = cbind(accum_price_rNASDAQ, price)
+}
+plot(rNASDAQ__date, accum_price_rNASDAQ, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance of NASDAQ100")
+
+graphics.off()
+
+
+############################################################
+# 只跟S&P500 比 全期間:2008-01~2020-03
+png(filename = "R output/"+CertainInvestor+"_cpmarison_all.png", width = 1024, height = 768, res = 150)
+plot(Rp_star_date, accum_price, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance", col = "blue", ylim = c(0,max(accum_price)))
+par(new=T)
+plot(rSP500__date, accum_price_rSP500, type = 'l', xlab = "year", ylab = "Dollars (initial value = $1)",
+     main = "Performance", col = "red",ylim = c(0,max(accum_price)))
+legend("bottomright", legend = c("Self-Constructed Portfolio", "S&P500"),
+      lty = c(1, 1), cex = 0.75,
+       col = c(4, 2), text.col = c(4,2))
+graphics.off()
+
+# 2018-12~2019-12 一年報酬
+png(filename = "R output/"+CertainInvestor+"_cpmarison_1y.png", width = 1024, height = 768, res = 150)
+plot(Rp_star_date[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"], 
+     accum_price[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"]/accum_price[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"][1],
+     type = 'l', xlab = "Previous 12 Months",
+     ylab = "Dollars (initial value = $1)",
+     main = "Performance", col = "blue", ylim = c(0.9,max(accum_price[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"]/accum_price[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"][1])))
+par(new=T)
+plot(rSP500__date[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"], 
+     accum_price_rSP500[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"]/accum_price_rSP500[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"][1], 
+     type = 'l', xlab = "Previous 12 Months", 
+     ylab = "Dollars (initial value = $1)",
+     main = "Performance", col = "red",ylim = c(0.9,max(accum_price[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"]/accum_price[Rp_star_date>="2018-12-01" & Rp_star_date<="2019-12-01"][1])))
+legend("bottomright", legend = c("Self-Constructed Portfolio", "S&P500"),
+       lty = c(1, 1), cex = 0.75,
+       col = c(4, 2), text.col = c(4,2))
+graphics.off()
+
+# 2016-12~2019-12 三年報酬
+png(filename = "R output/"+CertainInvestor+"_cpmarison_3y.png", width = 1024, height = 768, res = 150)
+plot(Rp_star_date[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"], 
+     accum_price[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"]/accum_price[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"][1],
+     type = 'l', xlab = "Previous 36 Months",
+     ylab = "Dollars (initial value = $1)",
+     main = "Performance", col = "blue", ylim = c(0.9,max(accum_price[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"]/accum_price[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"][1])))
+par(new=T)
+plot(rSP500__date[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"], 
+     accum_price_rSP500[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"]/accum_price_rSP500[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"][1], 
+     type = 'l', xlab = "Previous 36 Months", 
+     ylab = "Dollars (initial value = $1)",
+     main = "Performance", col = "red",ylim = c(0.9,max(accum_price[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"]/accum_price[Rp_star_date>="2016-12-01" & Rp_star_date<="2019-12-01"][1])))
+legend("bottomright", legend = c("Self-Constructed Portfolio", "S&P500"),
+       lty = c(1, 1), cex = 0.75,
+       col = c(4, 2), text.col = c(4,2))
+graphics.off()
+
+# 2014-12~2019-12 五年報酬
+png(filename = "R output/"+CertainInvestor+"_cpmarison_5y.png", width = 1024, height = 768, res = 150)
+plot(Rp_star_date[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"], 
+     accum_price[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"]/accum_price[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"][1],
+     type = 'l', xlab = "Previous 60 Months",
+     ylab = "Dollars (initial value = $1)",
+     main = "Performance", col = "blue", ylim = c(0.9,max(accum_price[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"]/accum_price[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"][1])))
+par(new=T)
+plot(rSP500__date[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"], 
+     accum_price_rSP500[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"]/accum_price_rSP500[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"][1], 
+     type = 'l', xlab = "Previous 60 Months", 
+     ylab = "Dollars (initial value = $1)",
+     main = "Performance", col = "red",ylim = c(0.9,max(accum_price[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"]/accum_price[Rp_star_date>="2014-12-01" & Rp_star_date<="2019-12-01"][1])))
+legend("bottomright", legend = c("Self-Constructed Portfolio", "S&P500"),
+       lty = c(1, 1), cex = 0.75,
+       col = c(4, 2), text.col = c(4,2))
+graphics.off()
