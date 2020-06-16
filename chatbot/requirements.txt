@@ -1,3 +1,0 @@
-python == 3.6.10
-python-telegram-bot == 9.0.0
-configparser == 5.0.0
