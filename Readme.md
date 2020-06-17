@@ -1,5 +1,13 @@
 # CTBC Project
 
+## Content
+- [Bill Ackman](https://github.com/chenjanice/CTBC-PROJECT#bill-ackman)
+- [All Super Investor](https://github.com/chenjanice/CTBC-PROJECT#regression)
+- [Self-Constructed Portfolio](https://github.com/chenjanice/CTBC-PROJECT#self-constructed-portfolio)
+- [ChatBot](https://github.com/chenjanice/CTBC-PROJECT#chatbot)
+
+
+
 ## 中信：投資因子分析
  - 投資人1：Bill Ackman
  - 投資人2：Chuck Akre
