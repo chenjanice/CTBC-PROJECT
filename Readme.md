@@ -6,7 +6,7 @@
 ### BTS&P Co. 
 **Want to invest the Right target ?   
 Why not choose to invest in Right person ?**
-- PPT : [中信金CTBC_投資名人堂－投資因子分析_第二組](https://www.canva.com/design/DAD_VybQInQ/s2ptae3My8bXvohuJxfyCA/view?utm_content=DAD_VybQInQ&utm_campaign=designshare&utm_medium=link&utm_source=sharebutton)
+PPT : [中信金CTBC_投資名人堂－投資因子分析_第二組](https://www.canva.com/design/DAD_VybQInQ/s2ptae3My8bXvohuJxfyCA/view?utm_content=DAD_VybQInQ&utm_campaign=designshare&utm_medium=link&utm_source=sharebutton)
    
     
     
