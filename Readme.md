@@ -32,16 +32,16 @@
 >  - [經濟預測模型](https://github.com/chenjanice/CTBC-PROJECT/tree/master/%E7%B6%93%E6%BF%9F%E9%A0%90%E6%B8%AC%E6%A8%A1%E5%9E%8B)
 >  - [Regression結果](https://github.com/chenjanice/CTBC-PROJECT/blob/master/Bill%20Ackman's%20Portfolio%20Return/readme.md)
 ## All Super Investor
-### Preprocessing
-1. Crawling Portfolio Weightings on Dataroma
-2. Crawling Stock Prices from Yahoo Finance
-3. Apply the matrix product on the two dataframe in R in order to get portfolio returns in different month.
-4. Combine the port folio return with monthly fama 5 factors, and then run the regression.
-
-### Regression
-* Fama French 5-factor Model
-  ![R_p = \alpha + \beta_1 MKT + \beta_2 SMB + \beta_3 HML + \beta_4 RMW + \beta_5 CMA + u_i](https://render.githubusercontent.com/render/math?math=R_p%20%3D%20%5Calpha%20%2B%20%5Cbeta_1%20MKT%20%2B%20%5Cbeta_2%20SMB%20%2B%20%5Cbeta_3%20HML%20%2B%20%5Cbeta_4%20RMW%20%2B%20%5Cbeta_5%20CMA%20%2B%20u_i)
-
+> ### Preprocessing
+> 1. Crawling Portfolio Weightings on Dataroma
+> 2. Crawling Stock Prices from Yahoo Finance
+> 3. Apply the matrix product on the two dataframe in R in order to get portfolio returns in different month.
+> 4. Combine the port folio return with monthly fama 5 factors, and then run the regression.
+>
+> ### Regression
+> * Fama French 5-factor Model
+> ![R_p = \alpha + \beta_1 MKT + \beta_2 SMB + \beta_3 HML + \beta_4 RMW + \beta_5 CMA + u_i](https://render.githubusercontent.com/render/math?math=R_p%20%3D%20%5Calpha%20%2B%20%5Cbeta_1%20MKT%20%2B%20%5Cbeta_2%20SMB%20%2B%20%5Cbeta_3%20HML%20%2B%20%5Cbeta_4%20RMW%20%2B%20%5Cbeta_5%20CMA%20%2B%20u_i)
+>
 > ### Regression_Data
 >   -  [All output](https://github.com/chenjanice/CTBC-PROJECT/tree/master/ALL%20Super%20Investors'%20Portfolio/ALL%20Super%20Investors'%20Portfolio%20in%20R/reg%20output/regression%20table)
 >   -  [All Price](https://github.com/chenjanice/CTBC-PROJECT/blob/master/ALL%20Super%20Investors'%20Portfolio/ALL%20Super%20Investors'%20Portfolio%20in%20R/raw%20data/ALL_Prices.csv)
